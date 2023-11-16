@@ -10,10 +10,10 @@ var Button = function(config)
     
 Button.prototype.draw = function() {
         rectMode(CORNER);
-        fill(0, 234, 255);
+        fill(0, 251, 255);
         rect(this.x, this.y, this.width, this.height, 5);
         fill(0, 0, 0);
-        textSize(19);
+        textSize(20);
         textAlign(LEFT, TOP);
         text(this.label, this.x + 50, this.y + this.height/4);
 };
@@ -42,12 +42,62 @@ var btn1 = new Button (
     }
 ); 
 
-var drawScene0 = function () {
-    background(239, 242, 72);
-    fill(0, 13, 255);
-    textSize(30);
-    text("STACK", 100, 175);
+var drawBitmoji = function(myBitmoji) {
+    //shirt
+    fill(myBitmoji.shirtColor);
+    rect(myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,78*myBitmoji.h/100,60*myBitmoji.h/100);//shirt
+    quad(myBitmoji.x+55*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+70*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+40*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//left-sleeve
+    quad(myBitmoji.x+145*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+160*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+140*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+125*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//right-sleeve
+    if (myBitmoji.initials === true) {
+    fill(0, 0, 0);
+    textSize(30*myBitmoji.h/100);
+    text("A.", myBitmoji.x + 75*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    text("S", myBitmoji.x + 105*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    }
+    
+    //head
+    fill(169,121,71);
+    ellipse(myBitmoji.x+68*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//right-ear
+    ellipse(myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//left-ear
+    image(getImage("cute/GemBlue"),myBitmoji.x+64*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//right-earing
+    image(getImage("cute/GemBlue"),myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//left-earing
+    ellipse(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+70*myBitmoji.h/100,63*myBitmoji.h/100,80*myBitmoji.h/100);//head
+    fill(13, 13, 13);
+    quad(myBitmoji.x+75*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+120*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+130*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100,myBitmoji.x+65*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100);//hair
+    
+    //face
+    fill(92, 64, 51);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//left-eye
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//right-eye
+    fill(0, 0, 0);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//left-eye-pupil
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//right-eyepupil
+    fill(207, 67, 120);
+    arc(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+83*myBitmoji.h/100,33*myBitmoji.h/100,40*myBitmoji.h/100,0,180);//mouth
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100);//nose
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100);//nose
+    line(myBitmoji.x+82*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+95*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//right-eyebrow
+    line(myBitmoji.x+115*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+103*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//left-eyebrow
+};
+
+var drawScene0 = function() {
+    background(230, 151, 237);
+    drawBitmoji({
+       x:20,
+       y:20,
+       h:60,
+       shirtColor:color(199, 37, 110),
+       initials: true
+    });
+    fill(61, 24, 171);
+    textSize(40);
+    textAlign(CENTER, BASELINE);
+    text("STACK", 195, 175);
     btn1.draw();
 };
 
+var drawScene1 = function() {
+    
+};
 
+drawScene0();
