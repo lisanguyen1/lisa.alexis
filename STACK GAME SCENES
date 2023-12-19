@@ -1,0 +1,730 @@
+var currentScene = 0;
+
+//BUTTONS CONFIG
+var Button = function(config) {   //from Khan
+        this.x = config.x || 0;
+        this.y = config.y || 0;
+        this.width = config.width || 159;
+        this.height = config.height || 50;
+        this.label = config.label || "Click";
+        this.onClick = config.onClick || function(){};
+        this.color = config.color || color(250, 250, 250);
+        this.radius = config.radius || 110;
+        this.strokeColor = config.strokeColor || color(0); // Default to black
+        this.strokeWeight = config.strokeWeight || 1;
+        this.textColor = config.textColor || color(0,0,0);
+        this.textX = config.textX || 49;
+};
+Button.prototype.draw = function() {
+        //BUTTON BOX
+        rectMode(CORNER);
+        stroke(this.strokeColor);
+        strokeWeight(this.strokeWeight);
+        fill(this.color);
+        rect(this.x, this.y, this.width, this.height, this.radius);
+
+        
+        //BUTTON TEXT
+        fill(this.textColor);
+        textSize(20);
+        textAlign(LEFT, TOP);
+        text(this.label, this.x + this.textX, this.y + this.height/4);
+};
+Button.prototype.isMouseInside = function() {
+    return  mouseX >= this.x &&
+            mouseX <= (this.x + this.width) &&
+            mouseY >= this.y && 
+            mouseY <= (this.y + this.height);
+    };
+Button.prototype.handleMouseClick = function() {
+        if (this.isMouseInside()) {
+            this.onClick();
+        }
+    };
+    
+    
+//COLOR PALLETES OPTIONS
+var drawPalleteRainbow = function() {
+  background(255);
+
+  // Calculate the current time
+    var time = millis();
+    var colors = [
+        color(218, 170, 240), 
+        color(170, 178, 240),
+        color(250, 217, 165),
+        color(252, 242, 131), 
+        color(198, 237, 98),
+        color(110, 227, 250), 
+        color(170, 178, 240),
+        color(218, 170, 240), 
+    ];
+
+ 
+  for (var i = 0; i < 2000; ++i) {
+    // Calculate the y-coordinate based on time
+    var y = (i + time * 0.2) % 2000;
+
+    // Calculate the position in the gradient
+    var position = y / 2000;
+
+    // Calculate the color index
+    var index = floor(position * (colors.length - 1 ));
+    
+    // Calculate interpolation factor
+    var factor = position * (colors.length-1) -index;
+
+    // Get start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index + 1];
+
+    // Interpolate between the start and end colors
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // Set stroke color
+    stroke(gradientColor);
+
+    // Draw a line at the current y-coordinate
+    line(-100, i, 400, i);
+    
+  }
+  
+};
+var drawPalleteSunset = function(){
+  background(255);
+  var time = millis();
+
+  // Define an array of 5 colors
+ var colors = [
+    color(139, 61, 255),
+    color(250, 129, 30),
+    color(139, 61, 255),
+     ];
+
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+
+};
+var drawPalleteBarbie = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(245, 137, 232),
+        color(252, 114, 144),
+        color(198, 156, 247),
+        color(250, 170, 192),
+        color(245, 137, 232),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+};
+var drawPalleteBlurple = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(160, 221, 250),
+        color(168, 170, 250),
+        color(250, 225, 170),
+        color(168, 170, 250),
+        color(160, 221, 250),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+};
+var drawPalleteBlue = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(35, 235, 212),
+        color(115, 189, 250),
+        color(157, 160, 245),
+        color(50, 105, 207),
+        color(8, 12, 97),
+        color(35, 235, 212),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+};
+var drawPalleteRetro = function(){};
+
+
+var blockNum = 0;
+var blocks = []; // Array to store multiple rectangles
+var totalHeight = 0;
+for (var i = 0; i < blockNum; i++) {
+    blocks.push({
+        x: 106,
+        y: 600 - totalHeight,
+        color: color(random(200, 250), random(200, 255), random(200, 255)),
+        width: 200,
+        height: 20
+    });
+
+    totalHeight += 20;
+}
+
+    //DRAW RAINDROP
+    var numDrops = 60;
+    var xPositions = [];
+    var yPositions = [];
+    var dropColors = [];
+    var dropSpeed = [];
+    for (var i=0; i < numDrops; ++i){
+        xPositions.push(round(random(10,390)));
+        yPositions.push(round(random(0,600)));
+        dropColors.push(color(random(200,250),random(200,255),random(200,255)));
+        dropSpeed.push(round(random(1,3)));
+        
+    }
+    
+var drawSettingPallete = function(){
+  
+    drawPalleteRainbow();
+    for (var i = 0; i < xPositions.length; i++) {
+        fill(dropColors[i]);
+        ellipse(xPositions[i], yPositions[i], 10, 5);
+        yPositions[i] += dropSpeed[i];
+        if (yPositions[i] > 600 && yPositions[i] > 296){ 
+            yPositions[i] = round(random(-100,0));
+        }
+    }
+};
+
+//START BUTTON
+var btn1 = new Button ( 
+    {
+        x: 73,
+        y: 238,
+        color: color(255, 212, 212),
+        height: 51,
+        width: 249,
+        radius: 400,
+        strokeColor: noStroke,
+        strokeWeight: 2,
+        textColor: color(207, 83, 83),
+        textX: 34,
+        label: "C l i c k  T o  S t a r t ",
+        onClick: function() {
+            currentScene = 1;
+        }
+    }
+); 
+
+
+//THEMES BUTTONS
+var btn2 = new Button ( 
+    {
+        x: 46,
+        y: 171+3,
+        label: " R a i n b o w ",
+        textX: 16,
+        textColor: color(164, 90, 199),
+        color: color(218, 170, 240),
+        strokeColor: color(218, 170, 240),
+        width: 150,
+        onClick: function() {
+            currentScene = 3;
+        }
+    }
+); //rainbow
+
+
+var btn3 = new Button ( 
+    {
+        x: 46,
+        y: 228+3,
+        width: 150,
+        color: color(168, 170, 250),
+        strokeColor: color(168, 170, 250),
+        textX: 23,
+        textColor: color(98, 102, 217),
+        label: " S u n s e t ",
+        onClick: function() {
+            currentScene = 4;
+        }
+    }
+); //Sunset
+
+
+var btn4 = new Button ( 
+    {
+        x: 46,
+        y: 284+3,
+        width: 150,
+        label: " B a r b i e ",
+        textX: 27,
+        textColor: color(150, 135, 0),
+        color: color(255, 234, 0),
+        strokeColor: color(255, 234, 0),
+        onClick: function() {
+        currentScene = 5;
+        }
+    }
+); //Barbie
+
+
+var btn5 = new Button ( 
+    {
+        x: 205,
+        y: 171+3,
+        width: 150,
+        color: color(198, 237, 98),
+        strokeColor: color(198, 237, 98),
+        label: " B l u r p l e ",
+        textX: 26,
+        textColor: color(113, 150, 12),
+        onClick: function() {
+            currentScene = 6;
+        }
+    }
+); //Blurple
+
+
+var btn6 = new Button ( 
+    {
+        x: 205,
+        y: 228+3,
+        width: 150,
+        color: color(110, 227, 250),
+        strokeColor: color(110, 227, 250),
+        textX: 41,
+        textColor: color(17, 120, 138),
+        label: " B l u e ",
+        onClick: function() {
+        currentScene = 7;
+        }
+    }
+); //Blue
+
+var btn7 = new Button ( 
+    {
+        x: 205,
+        y: 284+3,
+        width: 150,
+        color: color(237, 139, 161),
+        strokeColor: color(237, 139, 161),
+        textX: 36,
+        textColor: color(138, 18, 48),
+        label: " R e t r o ",
+        onClick: function() {
+        currentScene = 8;
+        }
+    }
+); //RETRO
+
+
+//BITMOJI ALEXIS AND LISA
+var drawBitmoji = function(myBitmoji) {
+    //shirt
+    fill(myBitmoji.shirtColor);
+    rect(myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,78*myBitmoji.h/100,60*myBitmoji.h/100);//shirt
+    quad(myBitmoji.x+55*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+70*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+40*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//left-sleeve
+    quad(myBitmoji.x+145*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+160*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+140*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+125*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//right-sleeve
+    if (myBitmoji.initials === true) {
+    fill(0, 0, 0);
+    textSize(30*myBitmoji.h/100);
+    text("A.", myBitmoji.x + 75*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    text("S", myBitmoji.x + 105*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    }
+    
+    //head
+    fill(169,121,71);
+    ellipse(myBitmoji.x+68*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//right-ear
+    ellipse(myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//left-ear
+    image(getImage("cute/GemBlue"),myBitmoji.x+64*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//right-earing
+    image(getImage("cute/GemBlue"),myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//left-earing
+    ellipse(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+70*myBitmoji.h/100,63*myBitmoji.h/100,80*myBitmoji.h/100);//head
+    fill(13, 13, 13);
+    quad(myBitmoji.x+75*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+120*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+130*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100,myBitmoji.x+65*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100);//hair
+    
+    //face
+    fill(92, 64, 51);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//left-eye
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//right-eye
+    fill(0, 0, 0);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//left-eye-pupil
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//right-eyepupil
+    fill(207, 67, 120);
+    arc(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+83*myBitmoji.h/100,33*myBitmoji.h/100,40*myBitmoji.h/100,0,180);//mouth
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100);//nose
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100);//nose
+    line(myBitmoji.x+82*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+95*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//right-eyebrow
+    line(myBitmoji.x+115*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+103*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//left-eyebrow
+};
+var LisaBitmoji = function(x,y,h, shirtColor, initial){
+    this.x = x;
+    this.y = y;
+    this.h=h;
+    this.shirtColor = shirtColor;
+    this.initial= initial;
+    
+ };
+var drawBitmojiLisa = function (bitmoji){ 
+   // var h = height/10;
+    var drawHead = function (){
+    //hair
+    fill(97, 0, 0);
+    arc(bitmoji.x+(70*bitmoji.h),bitmoji.y+(121*bitmoji.h), 117*bitmoji.h,184*bitmoji.h,-180,0);
+    //ears
+    fill(247, 215, 170);
+    arc(bitmoji.x+(101*bitmoji.h), bitmoji.y+(81*bitmoji.h), 17*bitmoji.h, 20*bitmoji.h,-87, 108);//right ear
+    arc(bitmoji.x+(34*bitmoji.h), bitmoji.y+(81*bitmoji.h), 17*bitmoji.h, 20*bitmoji.h, -296, -43);//left ear
+    
+    //face
+    fill(247, 215, 170);
+    ellipse (bitmoji.x+(69*bitmoji.h), bitmoji.y+(78*bitmoji.h), 70*bitmoji.h, 80*bitmoji.h);
+    //glasses
+    rect(bitmoji.x+(40*bitmoji.h), bitmoji.y+(61*bitmoji.h), 24*bitmoji.h, 22*bitmoji.h, 128*bitmoji.h);
+    rect(bitmoji.x+(72*bitmoji.h), bitmoji.y+(61*bitmoji.h), 24*bitmoji.h, 22*bitmoji.h, 128*bitmoji.h);
+    arc(bitmoji.x+(68.2*bitmoji.h), bitmoji.y+(70*bitmoji.h),10*bitmoji.h, 0.5*bitmoji.h, 145 ,404);
+    //eyes
+    fill(59, 15, 15);
+    ellipse (bitmoji.x+54*bitmoji.h, bitmoji.y+70*bitmoji.h, 10*bitmoji.h, bitmoji.h*15);//left eye
+    ellipse (bitmoji.x+84*bitmoji.h,bitmoji.y+70*bitmoji.h, bitmoji.h*10, bitmoji.h*15);//right eye
+    //pupils
+    fill(245, 242, 242);
+    ellipse (bitmoji.x+55*bitmoji.h, bitmoji.y+68*bitmoji.h,bitmoji.h*(-7),bitmoji.h*9);//left pupil
+    ellipse (bitmoji.x+85*bitmoji.h, bitmoji.y+68*bitmoji.h, bitmoji.h*(-7), bitmoji.h*9);//right pupil
+    
+    //mouth
+    line(bitmoji.x+54.5*bitmoji.h, bitmoji.y+92.5*bitmoji.h, bitmoji.x+83*bitmoji.h, bitmoji.y+92.5*bitmoji.h);
+    fill(186, 117, 117);
+    arc(bitmoji.x+69*bitmoji.h, bitmoji.y+93*bitmoji.h, bitmoji.h*28, bitmoji.h*22, 0, 180);
+    //bangs
+    fill(97, 0, 0);
+    arc(bitmoji.x+99*bitmoji.h, bitmoji.y+42*bitmoji.h, bitmoji.h*33, bitmoji.h*31, 87, 182);//bangs right
+    arc(bitmoji.x+45*bitmoji.h, bitmoji.y+38*bitmoji.h, bitmoji.h*83, bitmoji.h*44, -9, 104);//bangs left
+    };
+  
+    var drawBody = function (){
+    //sleeves
+    fill(255, 226, 130);
+    triangle(bitmoji.x+126*bitmoji.h, bitmoji.y+183*bitmoji.h,bitmoji.x+129*bitmoji.h, bitmoji.y+118*bitmoji.h, bitmoji.x+68*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    triangle(bitmoji.x+14*bitmoji.h, bitmoji.y+185*bitmoji.h, bitmoji.x+11*bitmoji.h, bitmoji.y+118*bitmoji.h, bitmoji.x+70*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    //shirt
+    fill(bitmoji.shirtColor);
+    triangle(bitmoji.x+130*bitmoji.h, bitmoji.y+117*bitmoji.h, bitmoji.x+10*bitmoji.h, bitmoji.y+117*bitmoji.h, bitmoji.x+69*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    if (bitmoji.initial){
+    text("LN", bitmoji.x+(96*bitmoji.h), bitmoji.y + (167*bitmoji.h), 20*bitmoji.h,20*bitmoji.h);
+}
+};
+    
+  drawHead ();
+  drawBody ();
+};
+
+
+//STARTING SCENES
+var drawScene0 = function() {
+    //BACKGROUND
+    drawPalleteRainbow(); 
+    noStroke();
+    
+      for (var i = 0; i < blocks.length; i++) {
+        fill(blocks[i].color);
+        rect(blocks[i].x, blocks[i].y, blocks[i].width, blocks[i].height);
+    }
+
+    
+    //DRAW RAINBOW
+    var rainbowColors = [
+        color(135, 149, 255),
+        color(218, 170, 240), 
+        color(242, 162, 177),
+        color(250, 217, 165),
+        color(252, 242, 131), 
+        color(198, 237, 98),
+        color(68, 218, 245), 
+    ];
+
+    for (var i = 0; i < rainbowColors.length; i++) 
+    {
+        fill(rainbowColors[i]);
+        rect(0, 73 + i * 20, 400, 20);
+    }
+
+    
+    
+    /*
+    drawBitmoji({
+       x:303,
+       y:308,
+       h:40,
+       shirtColor:color(199, 37, 110),
+       initials: true
+    });
+    drawBitmojiLisa({
+        x:271,
+        y:308,
+        h:0.35,
+        shirtColor: color(201, 141, 227),
+        initial: true
+    });
+   */ 
+   
+   
+    //TEXT SHADOW
+    fill(229, 189, 255);
+    stroke(13, 1, 1);
+    textSize(98);
+    text("STACK", 38, 88);
+    
+    //MAIN TEXT
+    fill(255, 255, 122);
+    textAlign(CENTER, BASELINE);
+    textSize(98);
+    text("STACK", 200, 176);
+    
+    
+    //NAMES
+    textSize(13);
+    fill(170, 163, 247);
+    text("L I S A   &   A L E X I S", 196, 362);
+    fill(255, 248, 199);
+    text("L I S A   &   A L E X I S", 197, 360);
+    
+    btn1.draw();
+};
+var drawInstructionScene1 = function(){
+    drawSettingPallete();
+    
+    //BOX DESIGN
+    fill(242, 158, 158);
+    rect(16,29,365,334,19);
+    fill(242, 255, 127);
+    rect(28,95,340,258,19);
+    fill(163, 255, 237);
+    rect(51,108,294,53,165);
+    
+    ellipse(45,62,20,20);
+    ellipse(75,62,20,20);
+    ellipse(105,62,20,20);
+    
+    //stroke(163, 85, 85);
+    line(19,85,380,85);
+    
+    //TEXT SHADOW
+    textAlign(CENTER, BASELINE);
+    fill(196, 87, 14);
+    stroke(13, 1, 1);
+    textSize(30);
+    text("INSTRUCTIONS", 202, 147);
+    
+    //MAIN TEXT
+    fill(255, 198, 158);
+    textSize(46);
+    textAlign(CENTER, BASELINE);
+    textSize(30);
+    text("INSTRUCTIONS", 200, 147);
+    
+    //INSTRUCTIONS TEXT
+    fill(186, 67, 186);
+    textAlign(CENTER, BASELINE);
+    textSize(14);
+    text("Your goal is to go for as long as you can stacking blocks and rack up the highest score that you can. More layers will float in off of the upper left side and upper right side of the screen. When the block floats over the tower, mouse Click and it will drop, adding another level to the tower. Your goal, of course, is to center the block as well as possible so that none of it drops off when you add it to the tower.", 32, 173, 340,400);
+    
+    //CONTINUE BUTTON
+    //stroke(0, 0, 0);
+    noStroke();
+    fill(255, 74, 134);
+    triangle(300 + 10, 390, 300 + 10, 350, 331 + 10, 369);
+    triangle(267 + 10, 390, 267 + 10, 350, 298 + 10, 369);//-31,-27
+    triangle(333 + 10, 390, 333 + 10, 350, 362 + 10, 369);
+    if (mouseIsPressed && mouseX >= 300 && mouseX <= 390 && mouseY >= 340 && mouseY <= 400) 
+    {
+        currentScene = 2;
+    }
+ 
+};
+var drawSettingScene2 = function(){
+    noStroke();
+    background(255);
+    drawSettingPallete();
+  
+     //BOX DESIGN
+    fill(242, 158, 158);
+    rect(16,29,365,334+10,19);
+    fill(242, 255, 127);
+    rect(28,95+3,340,258,19);
+    fill(163, 255, 237);
+    rect(43,107+3,315,57,165);
+    
+    ellipse(45,62,20,20);
+    ellipse(75,62,20,20);
+    ellipse(105,62,20,20);
+    
+    //stroke(163, 85, 85);
+    line(19,85,380,85);
+    
+    //TEXT SHADOW
+    textAlign(CENTER, BASELINE);
+    fill(229, 189, 255);
+    stroke(13, 1, 1);
+    textSize(30);
+    text("PICK YOUR THEME", 202, 147+3);
+    
+    //MAIN TEXT
+    fill(255, 255, 122);
+    textSize(46);
+    textAlign(CENTER, BASELINE);
+    textSize(30);
+    text("PICK YOUR THEME", 200, 147+3);
+ 
+};
+
+
+//GAME SCENES
+var drawGameSceneRainbow3 = function(){
+    drawPalleteRainbow();
+};
+var drawGameSceneSunset4 = function(){
+    drawPalleteSunset();
+};
+var drawGameSceneBarbie5 = function(){
+    drawPalleteBarbie();
+};
+var drawGameSceneBlurple6 = function(){
+    drawPalleteBlurple();
+};
+var drawGameSceneBlue7 = function(){
+    drawPalleteBlue();
+};
+var drawGameSceneRetro8 = function(){
+    
+};
+var drawWinScene9 = function (){};
+
+
+//BUTTONCONTROLS
+mouseClicked = function() {
+if (currentScene === 0) {
+    btn1.handleMouseClick();
+}
+
+if (currentScene === 2) {
+    btn2.handleMouseClick();
+    btn3.handleMouseClick();
+    btn4.handleMouseClick();
+    btn5.handleMouseClick();
+    btn6.handleMouseClick();
+}
+};
+
+//CALLS
+draw = function() {
+   // drawScene0();
+    
+   /*drawSettingScene2();
+            btn2.draw();
+            btn3.draw();
+            btn4.draw();
+            btn5.draw();
+            btn6.draw();
+            btn7.draw();*/
+            
+   // drawInstructionScene1();
+   
+    if (currentScene === 1) 
+        {
+            drawInstructionScene1();
+           
+        }
+        
+    if (currentScene === 2) {
+            drawSettingScene2();
+            btn2.draw();
+            btn3.draw();
+            btn4.draw();
+            btn5.draw();
+            btn6.draw();
+            btn7.draw();
+    }
+     if (currentScene === 3) {
+        drawGameSceneRainbow3();
+    }
+    if (currentScene === 4) {
+        drawGameSceneSunset4();
+    }
+    if (currentScene === 5) {
+        drawGameSceneBarbie5();
+    }
+    if (currentScene === 6) {
+        drawGameSceneBlurple6();
+    }
+    if (currentScene === 7) {
+        drawGameSceneBlue7();
+    }
+    if (currentScene === 0) {
+        drawScene0();
+        
+    }
+
+};
