@@ -1,0 +1,149 @@
+noStroke();
+
+var numPlatforms = 0;
+var platforms = [];
+var originalPlatformWidth = 200;
+var originalPlatformHeight = 20;
+var originalPlatformX = 110;
+var originalPlatformY = 380;
+var barrierX = originalPlatformX;
+var barrierWidth = originalPlatformWidth;
+var gameWon = false;
+var gameLost = false;
+
+var Platform = function(x, y, width, height, speed) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+};
+
+Platform.prototype.draw = function() {
+    for (var j = 0; j < 18; j++) {
+        rect(this.x, this.y, this.width, this.height);
+    }
+};
+
+var generatePlatform = function(x, overhang) {
+    numPlatforms++;
+    var movingPlatformY = originalPlatformY - (numPlatforms * 20);
+    var platformSpeed = 1 + 1 * (numPlatforms - 1);
+    var newPlatformWidth = originalPlatformWidth - overhang;
+    var newPlatform = new Platform(x, movingPlatformY, newPlatformWidth, originalPlatformHeight, platformSpeed);
+    platforms.push(newPlatform);
+};
+
+var bouncePlatform = function(platform) {
+    if (platform.x > 400 - platform.width || platform.x < 0) {
+        platform.x = constrain(platform.x, 0, 400 - platform.width);
+        platform.speed = -platform.speed;
+    }
+};
+
+var drawPlatforms = function() {
+    fill(225, 255, 0);
+    for (var i = 0; i < platforms.length; i++) {
+        platforms[i].draw();
+        if (gameWon) {
+            return; // Skip updating positions if the game is won
+        }
+        platforms[i].x += platforms[i].speed;
+        bouncePlatform(platforms[i]);
+    }
+};
+
+var mouseClicked = function() {
+    if (gameWon || gameLost) {
+        return; // Ignore clicks if the game is already won or lost
+    }
+
+    var currentPlatform = platforms[platforms.length - 1];
+
+    // Calculate the overlapping region with the barrier (previous platform) only in the X-axis
+    var overlapX = max(0, min(currentPlatform.x + currentPlatform.width, barrierX + barrierWidth) - max(currentPlatform.x, barrierX));
+
+    if (overlapX > 0) {
+        // Erase the overhanging piece visually by redrawing the background
+        fill(255, 0, 0); // Set the background color (adjust as needed)
+
+        // Erase the left overhang
+        if (currentPlatform.x < barrierX) {
+            rect(currentPlatform.x, currentPlatform.y, overlapX, currentPlatform.height);
+        }
+        // Erase the right overhang
+        else if (currentPlatform.x + currentPlatform.width > barrierX + barrierWidth) {
+            rect(barrierX + barrierWidth, currentPlatform.y, overlapX, currentPlatform.height);
+        }
+
+        // Draw red rectangles over the current platform
+        fill(255, 0, 0);
+        rect(0, 0, 100, 400);
+        rect(300, 0, 100, 400);
+
+        // Stop the current moving platform
+        currentPlatform.speed = 0;
+
+        // Check for win condition
+        if (numPlatforms === 20) {
+            gameWon = true;
+        } else {
+            // Update the barrier to the current platform
+            barrierX = currentPlatform.x;
+            barrierWidth = currentPlatform.width;
+
+            // Generate the next platform, shortened by the overhanging part
+            generatePlatform(currentPlatform.x + overlapX, currentPlatform.width - overlapX);
+        }
+    } else {
+        // Incorrect alignment, trigger loss condition
+        gameLost = true;
+    }
+};
+
+var draw = function() {
+    // Draw the static elements
+    background(255, 0, 0);
+
+    fill(0, 0, 0);
+    textSize(15);
+    text("Score: " + numPlatforms, 25, 20);
+    text("Time: " + Math.floor(millis() / 1000) + "s", 320, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(255, 255, 0);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Draw red rectangles only when the platform is not moving
+    if (platforms.length > 0 && platforms[platforms.length - 1].speed === 0) {
+        fill(255, 0, 0);
+        rect(0, 0, 100, 400);
+        rect(300, 0, 100, 400);
+    }
+
+    // Display game result messages
+    if (gameWon) {
+        fill(0, 255, 0);
+        textSize(40);
+        text("You Win!", 100, 200);
+        text("Final Score: " + numPlatforms, 100, 250);
+    } else if (gameLost) {
+        fill(0, 0, 0);
+        textSize(40);
+        text("Game Over", 100, 200);
+        text("Final Score: " + numPlatforms, 100, 250);
+    }
+};
+
+
+var initializeGame = function() {
+    numPlatforms = 0;
+    platforms = [];
+
+    // Generate the first platform
+    generatePlatform(100, 0);
+};
+
+initializeGame();
