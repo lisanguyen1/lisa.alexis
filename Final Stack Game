@@ -1,0 +1,1242 @@
+var currentScene = 0;
+
+//BUTTONS CONFIG
+var Button = function(config) {   //from Khan
+        this.x = config.x || 0;
+        this.y = config.y || 0;
+        this.width = config.width || 159;
+        this.height = config.height || 50;
+        this.label = config.label || "Click";
+        this.onClick = config.onClick || function(){};
+        this.color = config.color || color(250, 250, 250);
+        this.radius = config.radius || 110;
+        this.strokeColor = config.strokeColor || color(0); // Default to black
+        this.strokeWeight = config.strokeWeight || 1;
+        this.textColor = config.textColor || color(0,0,0);
+        this.textX = config.textX || 49;
+};
+Button.prototype.draw = function() {
+        //BUTTON BOX
+        rectMode(CORNER);
+        stroke(this.strokeColor);
+        strokeWeight(this.strokeWeight);
+        fill(this.color);
+        rect(this.x, this.y, this.width, this.height, this.radius);
+        
+        //HIGHLIGHT BOX WHEN CLICKED
+        if (this.isMouseInside() && mouseIsPressed)         {
+            noFill();
+            stroke(91, 55, 219); 
+            strokeWeight(3);
+            rect(this.x - 2, this.y - 2, this.width + 4, this.height + 4, this.radius + 2);
+    }
+        //BUTTON TEXT
+        fill(this.textColor);
+        textSize(20);
+        textAlign(LEFT, TOP);
+        text(this.label, this.x + this.textX, this.y + this.height/4);
+};
+Button.prototype.isMouseInside = function() {
+    return  mouseX >= this.x &&
+            mouseX <= (this.x + this.width) &&
+            mouseY >= this.y && 
+            mouseY <= (this.y + this.height);
+    };
+Button.prototype.handleMouseClick = function() {
+        if (this.isMouseInside()) {
+            this.onClick();
+        }
+    };
+    
+//PLATFORMS CONFIG
+var Platform = function(x, y, width, height, speed, color) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.speed = speed;
+    this.color = color || color(random(200, 250), random(200, 255), random(200, 255));
+};
+Platform.prototype.draw = function() {
+    fill(this.color);
+    for (var j = 0; j < 18; j++) {
+        rect(this.x, this.y, this.width, this.height);
+    }
+};
+
+noStroke();
+var numPlatforms = 0;
+var platforms = [];
+var originalPlatformWidth = 200;
+var originalPlatformHeight = 20;
+var originalPlatformX = 110;
+var originalPlatformY = 380;
+var originalPlatformColor = color(random(200, 250), random(200, 255), random(200, 255));
+var barrierX = originalPlatformX;
+var barrierWidth = originalPlatformWidth;
+var gameWon = false;
+var gameLost = false;
+var startTime;
+var endTime;
+
+var generatePlatform = function(x, overhang) {
+    numPlatforms++;
+    var movingPlatformY = originalPlatformY - (numPlatforms * 20);
+    var platformSpeed = 1 + 1 * (numPlatforms - 1);
+    var newPlatformWidth = originalPlatformWidth - overhang;
+    var newPlatformColor = color(random(230, 250), random(180, 255), random(120, 255));
+    var newPlatform = new Platform(x, movingPlatformY, newPlatformWidth, originalPlatformHeight, platformSpeed, newPlatformColor);
+    platforms.push(newPlatform);
+};
+var bouncePlatform = function(platform) {
+    if (platform.x > 400 - platform.width || platform.x < 0) {
+        platform.x = constrain(platform.x, 0, 400 - platform.width);
+        platform.speed = -platform.speed;
+    }
+};
+var drawPlatforms = function() {
+    fill(225, 255, 0);
+    for (var i = 0; i < platforms.length; i++) {
+        platforms[i].draw();
+        platforms[i].x += platforms[i].speed;
+        bouncePlatform(platforms[i]);
+    }
+};
+var initializeGame = function() {
+    numPlatforms = 0;
+    platforms = [];
+    startTime = millis(); // Record the start time
+    endTime = 0; // Reset the end time
+
+    // Generate the first platform
+    generatePlatform(100, 0);
+};
+var keyPressed = function() {
+    if (gameWon || gameLost) {
+        return; // Ignore clicks if the game is already won or lost
+    }
+
+    var currentPlatform = platforms[platforms.length - 1];
+
+    // Calculate the overlapping region with the barrier (previous platform) only in the X-axis
+    var overlapX = max(0, min(currentPlatform.x + currentPlatform.width, barrierX + barrierWidth) - max(currentPlatform.x, barrierX));
+
+    if (overlapX > 0) {
+        // Draw rectangles to cover the overhanging parts for static platforms only
+        if (currentPlatform.speed === 0) {
+            fill(255, 0, 0);
+            rect(0, 0, originalPlatformX, 400);
+            rect(originalPlatformX + originalPlatformWidth, 0, 400 - (originalPlatformX + originalPlatformWidth), 400);
+        }
+
+        // Stop the current moving platform
+        currentPlatform.speed = 0;
+
+        // Check for win condition
+        if (numPlatforms === 19) { // Adjusted win condition
+            gameWon = true;
+            endTime = millis(); // Record the end time when the game is won
+        } else {
+            // Update the barrier to the current platform
+            barrierX = currentPlatform.x;
+            barrierWidth = currentPlatform.width;
+
+            // Generate the next platform, shortened by the overhanging part
+            generatePlatform(currentPlatform.x + overlapX, currentPlatform.width - overlapX);
+        }
+    } else {
+        // Incorrect alignment, trigger loss condition
+        gameLost = true;
+        endTime = millis(); // Record the end time when the game is lost
+    }
+};
+
+
+//ACCESORIES FOR PALLETES
+
+    //RAINDROPS CONFIG
+    var numDrops = 60;
+    var xPositions = [];
+    var yPositions = [];
+    var dropColors = [];
+    var dropSpeed = [];
+    for (var i=0; i < numDrops; ++i){
+        xPositions.push(round(random(10,390)));
+        yPositions.push(round(random(0,600)));
+        dropColors.push(color(random(200,250),random(200,255),random(200,255)));
+        dropSpeed.push(round(random(1,3)));
+    }
+
+    //STARS CONFIG (sponsored by chat GPT)
+    var starNum = 40;
+    var starBlinks = []; // Array to store multiple star blinks
+    for (var i = 0; i < starNum; ++i) {
+    starBlinks.push({
+        x: round(random(-10, 500)),
+        y: round(random(-10, 300)),
+        color: color(random(200, 250), random(200, 255), random(200, 255)),
+        isVisible: true,
+        lastToggleTime: millis() + random(1000) // Initial random lastToggleTime
+    });
+    }
+    var blinkTimeRange = [600, 2000]; // Range for blink time in milliseconds
+    
+//COLOR PALLETES OPTIONS
+var drawPalleteRainbow = function() {
+  background(255);
+
+  // Calculate the current time
+    var time = millis();
+    var colors = [
+        color(218, 170, 240), 
+        color(170, 178, 240),
+        color(250, 217, 165),
+        color(252, 242, 131), 
+        color(198, 237, 98),
+        color(110, 227, 250), 
+        color(170, 178, 240),
+        color(218, 170, 240), 
+    ];
+
+ 
+  for (var i = 0; i < 2000; ++i) {
+    // Calculate the y-coordinate based on time
+    var y = (i + time * 0.2) % 2000;
+
+    // Calculate the position in the gradient
+    var position = y / 2000;
+
+    // Calculate the color index
+    var index = floor(position * (colors.length - 1 ));
+    
+    // Calculate interpolation factor
+    var factor = position * (colors.length-1) -index;
+
+    // Get start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index + 1];
+
+    // Interpolate between the start and end colors
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // Set stroke color
+    stroke(gradientColor);
+
+    // Draw a line at the current y-coordinate
+    line(-100, i, 400, i);
+    
+    
+  }
+  
+};
+var drawPalleteSunset = function(){
+  background(255);
+  var time = millis();
+
+  // Define an array of 5 colors
+ var colors = [
+    color(139, 61, 255),
+    color(250, 129, 30),
+    color(139, 61, 255),
+     ];
+
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+
+};
+var drawPalleteBarbie = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(245, 137, 232),
+        color(252, 114, 144),
+        color(198, 156, 247),
+        color(250, 170, 192),
+        color(245, 137, 232),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+};
+var drawPalleteBlurple = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(160, 221, 250),
+        color(168, 170, 250),
+        color(250, 225, 170),
+        color(168, 170, 250),
+        color(160, 221, 250),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+  }
+};
+var drawPalleteBlue = function(){
+    background(255);
+    var time = millis();
+    var colors = [
+        color(8, 12, 97),
+        color(11, 17, 125),
+        color(35, 235, 212),
+        color(115, 189, 250),
+        color(139, 205, 240),
+        color(50, 105, 207),
+        color(11, 17, 125),
+        color(8, 12, 97),
+     ];
+  for (var i = 0; i < 1800; ++i) {
+  
+    var y = (i + time * 0.2) % 1800;
+    var position = y / 1800; //position of gradient
+    var index = floor(position * (colors.length - 1 )); //colorindex
+    var factor = position * (colors.length-1) -index; //controls mixing
+ 
+    //start and end colors
+    var startColor = colors[index];
+    var endColor = colors[index +1];
+
+    
+    var gradientColor = lerpColor(startColor, endColor, factor);
+
+    // fill the colors
+    stroke(gradientColor);
+    line(-100, i, 400, i);
+    
+    
+    
+  }
+};
+var drawStarBlue = function(){
+drawPalleteBlue();
+    noStroke();
+
+    // Iterate over the starBlinks array
+    for (var i = 0; i < starBlinks.length; i++) {
+        // Check if it's time to toggle visibility
+        if (millis() - starBlinks[i].lastToggleTime >= blinkTimeRange[0] && millis() - starBlinks[i].lastToggleTime >= blinkTimeRange[1]) {
+            // Toggle visibility
+            starBlinks[i].isVisible = !starBlinks[i].isVisible;
+            starBlinks[i].x = round(random(0, 390));
+            starBlinks[i].y = round(random(0, 250));
+            starBlinks[i].lastToggleTime = millis() + random(blinkTimeRange[0], blinkTimeRange[1]);
+        }
+
+        // Display BLINKS
+        if (starBlinks[i].isVisible) {
+            fill(starBlinks[i].color);
+            rect(starBlinks[i].x, starBlinks[i].y, 5, 5);
+        }
+    }
+
+};
+var drawPalleteRetro = function(){
+ background(200, 100, 2);
+    noStroke();
+
+    // Iterate over the starBlinks array
+    for (var i = 0; i < starBlinks.length; i++) {
+        // Check if it's time to toggle visibility
+        if (millis() - starBlinks[i].lastToggleTime >= blinkTimeRange[0] && millis() - starBlinks[i].lastToggleTime >= blinkTimeRange[1]) {
+            // Toggle visibility
+            starBlinks[i].isVisible = !starBlinks[i].isVisible;
+            starBlinks[i].x = round(random(0, 390));
+            starBlinks[i].y = round(random(0, 250));
+            starBlinks[i].lastToggleTime = millis() + random(blinkTimeRange[0], blinkTimeRange[1]);
+        }
+
+        // Display BLINKS
+        if (starBlinks[i].isVisible) {
+            fill(starBlinks[i].color);
+            rect(starBlinks[i].x, starBlinks[i].y, 5, 5);
+        }
+    }
+
+};
+var drawSettingPallete = function(){
+  drawPalleteRainbow();
+    for (var i = 0; i < xPositions.length; i++) {
+        fill(dropColors[i]);
+        rect(xPositions[i], yPositions[i], 6, 6, 2);
+        yPositions[i] += dropSpeed[i];
+        if (yPositions[i] > 600 && yPositions[i] > 296){ 
+            yPositions[i] = round(random(-100,0));
+        }
+    }
+};
+var drawRainbowDrop = function(){
+
+  drawPalleteRainbow();
+    for (var i = 0; i < xPositions.length; i++) {
+        noStroke();
+        fill(dropColors[i]);
+        rect(xPositions[i], yPositions[i], 6, 6, 2);
+        yPositions[i] += dropSpeed[i];
+        if (yPositions[i] > 600 && yPositions[i] > 296){ 
+            yPositions[i] = round(random(-100,0));
+        }
+    }
+};
+
+
+//START BUTTON
+var btn1 = new Button ( 
+    {
+        x: 112,
+        y: 198,
+        color: color(255, 254, 240),
+        height: 51,
+        width: 172,
+        radius: 400,
+        strokeColor: color(252, 226, 242),
+        strokeWeight: 0,
+        textColor: color(85, 160, 207),
+        textX: 30,
+        label: "S  T  A  R  T",
+        onClick: function() {
+            currentScene = 1;
+        }
+    }
+); 
+
+
+//THEMES BUTTONS
+var btn2 = new Button ( 
+    {
+        x: 46,
+        y: 171+3,
+        label: " R a i n b o w ",
+        textX: 16,
+        textColor: color(164, 90, 199),
+        color: color(218, 170, 240),
+        strokeColor: color(218, 170, 240),
+        width: 150,
+        onClick: function() {
+            currentScene = 3;
+        }
+    }
+); //rainbow
+
+
+var btn3 = new Button ( 
+    {
+        x: 46,
+        y: 228+3,
+        width: 150,
+        color: color(168, 170, 250),
+        strokeColor: color(168, 170, 250),
+        textX: 23,
+        textColor: color(98, 102, 217),
+        label: " S u n s e t ",
+        onClick: function() {
+            currentScene = 4;
+        }
+    }
+); //Sunset
+
+
+var btn4 = new Button ( 
+    {
+        x: 46,
+        y: 284+3,
+        width: 150,
+        label: " B a r b i e ",
+        textX: 27,
+        textColor: color(150, 135, 0),
+        color: color(255, 234, 0),
+        strokeColor: color(255, 234, 0),
+        onClick: function() {
+        currentScene = 5;
+        }
+    }
+); //Barbie
+
+
+var btn5 = new Button ( 
+    {
+        x: 205,
+        y: 171+3,
+        width: 150,
+        color: color(198, 237, 98),
+        strokeColor: color(198, 237, 98),
+        label: " B l u r p l e ",
+        textX: 26,
+        textColor: color(113, 150, 12),
+        onClick: function() {
+            currentScene = 6;
+        }
+    }
+); //Blurple
+
+
+var btn6 = new Button ( 
+    {
+        x: 205,
+        y: 228+3,
+        width: 150,
+        color: color(110, 227, 250),
+        strokeColor: color(110, 227, 250),
+        textX: 41,
+        textColor: color(17, 120, 138),
+        label: " B l u e ",
+        onClick: function() {
+        currentScene = 7;
+        }
+    }
+); //Blue
+
+var btn7 = new Button ( 
+    {
+        x: 205,
+        y: 284+3,
+        width: 150,
+        color: color(237, 139, 161),
+        strokeColor: color(237, 139, 161),
+        textX: 36,
+        textColor: color(138, 18, 48),
+        label: " R e t r o ",
+        onClick: function() {
+        currentScene = 8;
+        }
+    }
+); //RETRO
+
+//BITMOJI ALEXIS AND LISA
+var drawBitmoji = function(myBitmoji) {
+    //shirt
+    fill(myBitmoji.shirtColor);
+    rect(myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,78*myBitmoji.h/100,60*myBitmoji.h/100);//shirt
+    quad(myBitmoji.x+55*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+70*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+60*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+40*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//left-sleeve
+    quad(myBitmoji.x+145*myBitmoji.h/100,myBitmoji.y+135*myBitmoji.h/100,myBitmoji.x+160*myBitmoji.h/100,myBitmoji.y+115*myBitmoji.h/100,myBitmoji.x+140*myBitmoji.h/100,myBitmoji.y+105*myBitmoji.h/100,myBitmoji.x+125*myBitmoji.h/100,myBitmoji.y+110*myBitmoji.h/100);//right-sleeve
+    if (myBitmoji.initials === true) {
+    fill(0, 0, 0);
+    textSize(30*myBitmoji.h/100);
+    text("A.", myBitmoji.x + 75*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    text("S", myBitmoji.x + 105*myBitmoji.h/100, myBitmoji.y + 140*myBitmoji.h/100);
+    }
+    
+    //head
+    fill(169,121,71);
+    ellipse(myBitmoji.x+68*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//right-ear
+    ellipse(myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,13*myBitmoji.h/100,25*myBitmoji.h/100);//left-ear
+    image(getImage("cute/GemBlue"),myBitmoji.x+64*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//right-earing
+    image(getImage("cute/GemBlue"),myBitmoji.x+132*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100,5*myBitmoji.h/100,10*myBitmoji.h/100);//left-earing
+    ellipse(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+70*myBitmoji.h/100,63*myBitmoji.h/100,80*myBitmoji.h/100);//head
+    fill(13, 13, 13);
+    quad(myBitmoji.x+75*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+120*myBitmoji.h/100,myBitmoji.y+25*myBitmoji.h/100,myBitmoji.x+130*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100,myBitmoji.x+65*myBitmoji.h/100,myBitmoji.y+45*myBitmoji.h/100);//hair
+    
+    //face
+    fill(92, 64, 51);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//left-eye
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,10*myBitmoji.h/100,10*myBitmoji.h/100);//right-eye
+    fill(0, 0, 0);
+    ellipse(myBitmoji.x+110*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//left-eye-pupil
+    ellipse(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+58*myBitmoji.h/100,1*myBitmoji.h/100,2*myBitmoji.h/100);//right-eyepupil
+    fill(207, 67, 120);
+    arc(myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+83*myBitmoji.h/100,33*myBitmoji.h/100,40*myBitmoji.h/100,0,180);//mouth
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+65*myBitmoji.h/100);//nose
+    line(myBitmoji.x+90*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100,myBitmoji.x+100*myBitmoji.h/100,myBitmoji.y+75*myBitmoji.h/100);//nose
+    line(myBitmoji.x+82*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+95*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//right-eyebrow
+    line(myBitmoji.x+115*myBitmoji.h/100,myBitmoji.y+48*myBitmoji.h/100,myBitmoji.x+103*myBitmoji.h/100,myBitmoji.y+51*myBitmoji.h/100);//left-eyebrow
+};
+var LisaBitmoji = function(x,y,h, shirtColor, initial){
+    this.x = x;
+    this.y = y;
+    this.h=h;
+    this.shirtColor = shirtColor;
+    this.initial= initial;
+    
+ };
+var drawBitmojiLisa = function (bitmoji){ 
+   // var h = height/10;
+    var drawHead = function (){
+    //hair
+    fill(97, 0, 0);
+    arc(bitmoji.x+(70*bitmoji.h),bitmoji.y+(121*bitmoji.h), 117*bitmoji.h,184*bitmoji.h,-180,0);
+    //ears
+    fill(247, 215, 170);
+    arc(bitmoji.x+(101*bitmoji.h), bitmoji.y+(81*bitmoji.h), 17*bitmoji.h, 20*bitmoji.h,-87, 108);//right ear
+    arc(bitmoji.x+(34*bitmoji.h), bitmoji.y+(81*bitmoji.h), 17*bitmoji.h, 20*bitmoji.h, -296, -43);//left ear
+    
+    //face
+    fill(247, 215, 170);
+    ellipse (bitmoji.x+(69*bitmoji.h), bitmoji.y+(78*bitmoji.h), 70*bitmoji.h, 80*bitmoji.h);
+    //glasses
+    rect(bitmoji.x+(40*bitmoji.h), bitmoji.y+(61*bitmoji.h), 24*bitmoji.h, 22*bitmoji.h, 128*bitmoji.h);
+    rect(bitmoji.x+(72*bitmoji.h), bitmoji.y+(61*bitmoji.h), 24*bitmoji.h, 22*bitmoji.h, 128*bitmoji.h);
+    arc(bitmoji.x+(68.2*bitmoji.h), bitmoji.y+(70*bitmoji.h),10*bitmoji.h, 0.5*bitmoji.h, 145 ,404);
+    //eyes
+    fill(59, 15, 15);
+    ellipse (bitmoji.x+54*bitmoji.h, bitmoji.y+70*bitmoji.h, 10*bitmoji.h, bitmoji.h*15);//left eye
+    ellipse (bitmoji.x+84*bitmoji.h,bitmoji.y+70*bitmoji.h, bitmoji.h*10, bitmoji.h*15);//right eye
+    //pupils
+    fill(245, 242, 242);
+    ellipse (bitmoji.x+55*bitmoji.h, bitmoji.y+68*bitmoji.h,bitmoji.h*(-7),bitmoji.h*9);//left pupil
+    ellipse (bitmoji.x+85*bitmoji.h, bitmoji.y+68*bitmoji.h, bitmoji.h*(-7), bitmoji.h*9);//right pupil
+    
+    //mouth
+    line(bitmoji.x+54.5*bitmoji.h, bitmoji.y+92.5*bitmoji.h, bitmoji.x+83*bitmoji.h, bitmoji.y+92.5*bitmoji.h);
+    fill(186, 117, 117);
+    arc(bitmoji.x+69*bitmoji.h, bitmoji.y+93*bitmoji.h, bitmoji.h*28, bitmoji.h*22, 0, 180);
+    //bangs
+    fill(97, 0, 0);
+    arc(bitmoji.x+99*bitmoji.h, bitmoji.y+42*bitmoji.h, bitmoji.h*33, bitmoji.h*31, 87, 182);//bangs right
+    arc(bitmoji.x+45*bitmoji.h, bitmoji.y+38*bitmoji.h, bitmoji.h*83, bitmoji.h*44, -9, 104);//bangs left
+    };
+  
+    var drawBody = function (){
+    //sleeves
+    fill(255, 226, 130);
+    triangle(bitmoji.x+126*bitmoji.h, bitmoji.y+183*bitmoji.h,bitmoji.x+129*bitmoji.h, bitmoji.y+118*bitmoji.h, bitmoji.x+68*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    triangle(bitmoji.x+14*bitmoji.h, bitmoji.y+185*bitmoji.h, bitmoji.x+11*bitmoji.h, bitmoji.y+118*bitmoji.h, bitmoji.x+70*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    //shirt
+    fill(bitmoji.shirtColor);
+    triangle(bitmoji.x+130*bitmoji.h, bitmoji.y+117*bitmoji.h, bitmoji.x+10*bitmoji.h, bitmoji.y+117*bitmoji.h, bitmoji.x+69*bitmoji.h, bitmoji.y+196*bitmoji.h);
+    if (bitmoji.initial){
+    text("LN", bitmoji.x+(96*bitmoji.h), bitmoji.y + (167*bitmoji.h), 20*bitmoji.h,20*bitmoji.h);
+}
+};
+    
+  drawHead ();
+  drawBody ();
+};
+
+//STARTING SCENES
+var drawScene0 = function() {
+    //BACKGROUND
+    drawPalleteRainbow(); 
+    noStroke();
+    
+    //DRAW RAINBOW BAR
+    var rainbowColors = [
+        color(201, 206, 247),
+        color(234, 207, 247), 
+        color(255, 219, 226),
+        color(252, 224, 182),
+        color(250, 247, 210), 
+        color(233, 247, 193),
+        color(203, 236, 242), 
+        color(255, 219, 226),
+        color(252, 224, 182),
+        color(250, 247, 210), 
+        color(233, 247, 193),
+        color(203, 236, 242), 
+        color(234, 207, 247), 
+        color(255, 219, 226),
+    ];
+
+    for (var i = 0; i < rainbowColors.length; i++) 
+    {
+        fill(rainbowColors[i]);
+        rect(58, 44 + i * 20, 286, 20, 9);
+    }
+    
+    //BITMOJIS
+    drawBitmoji({
+       x:177,
+       y:358,
+       h:40,
+       shirtColor:color(199, 37, 110)
+    });
+    drawBitmojiLisa({
+        x:154,
+        y:360,
+        h:0.35,
+        shirtColor: color(201, 141, 227)
+       
+    });
+  
+    //TEXT SHADOW
+    fill(214, 153, 255);
+    stroke(13, 1, 1);
+    textSize(104);
+    text("STACK", 38-5, 88-14);
+    
+    //MAIN TEXT
+    fill(255, 255, 122);
+    textAlign(CENTER, BASELINE);
+    textSize(105);
+    text("STACK", 200+2, 176-10);
+    
+    //NAMES
+    textSize(13);
+    fill(170, 163, 247);
+    text("L I S A   &   A L E X I S", 196, 362);
+    fill(255, 248, 199);
+    text("L I S A   &   A L E X I S", 197, 360);
+    
+    btn1.draw();
+};
+var drawInstructionScene1 = function(){
+    drawSettingPallete();
+    //stroke(0, 0, 0);
+    //BOX DESIGN
+    fill(242, 158, 158);
+    rect(16,29,365,334,19);
+    fill(242, 255, 127);
+    rect(28,95,340,258,19);
+    fill(163, 255, 237);
+    rect(51,108,294,53,165);
+    
+    ellipse(45,62,20,20);
+    ellipse(75,62,20,20);
+    ellipse(105,62,20,20);
+    
+    //stroke(0, 0, 0);
+    line(19,85,380,85);
+    
+    //TEXT SHADOW
+    textAlign(CENTER, BASELINE);
+    fill(0, 0, 0);
+    //stroke(13, 1, 1);
+    textSize(33);
+    text("INSTRUCTIONS", 200, 147);
+    
+    //MAIN TEXT
+    fill(217, 11, 193);
+    textSize(46);
+    textAlign(CENTER, BASELINE);
+    textSize(33);
+    text("INSTRUCTIONS", 200, 147);
+    
+    //INSTRUCTIONS TEXT
+    fill(186, 63, 186);
+    textAlign(CENTER, BASELINE);
+    textSize(14);
+    text("Your goal is to go for as long as you can stacking blocks and rack up the highest score that you can. More layers will float in off of the upper left side and upper right side of the screen. When the block floats over the tower, click the SPACE bar and it will drop, adding another level to the tower. Your goal, of course, is to center the block as well as possible so that none of it drops off when you add it to the tower.", 32, 173, 340,400);
+    
+    //CONTINUE BUTTON
+    stroke(91, 55, 219);
+    //noStroke();
+    fill(255, 74, 134);
+    triangle(300 + 10, 390, 300 + 10, 350, 331 + 10, 369);
+    triangle(267 + 10, 390, 267 + 10, 350, 298 + 10, 369);//-31,-27
+    triangle(333 + 10, 390, 333 + 10, 350, 362 + 10, 369);
+    if (mouseIsPressed && mouseX >= 300 && mouseX <= 390 && mouseY >= 340 && mouseY <= 400) 
+    {
+        currentScene = 2;
+    }
+ 
+};
+var drawSettingScene2 = function(){
+    noStroke();
+    background(255);
+    drawSettingPallete();
+  
+     //BOX DESIGN
+    fill(242, 158, 158);
+    rect(16,29,365,334+10,19);
+    fill(242, 255, 127);
+    rect(28,95+3,340,258,19);
+    fill(163, 255, 237);
+    rect(43,107+3,315,57,165);
+    
+    ellipse(45,62,20,20);
+    ellipse(75,62,20,20);
+    ellipse(105,62,20,20);
+    
+    //stroke(163, 85, 85);
+    line(19,85,380,85);
+    
+    //TEXT SHADOW
+    textAlign(CENTER, BASELINE);
+    fill(229, 189, 255);
+    stroke(13, 1, 1);
+    textSize(30);
+    text("PICK YOUR THEME", 202, 147+3);
+    
+    //MAIN TEXT
+    fill(255, 255, 122);
+    textSize(46);
+    textAlign(CENTER, BASELINE);
+    textSize(30);
+    text("PICK YOUR THEME", 200, 147+3);
+ 
+};
+
+//GAME SCENES
+var drawGameSceneRainbow3 = function(){
+    drawRainbowDrop();
+    textSize(18);
+    
+    //CALCULATING TIME
+    var elapsedTime;
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } 
+    else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    //CALCULATE FINAL SCORE
+    var finalScore = numPlatforms + elapsedTime;
+    fill(149, 118, 207);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    //DRAW ORIGINAL PLATFORMS
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    //DISPLAY GAME RESULTS MESSAGE
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+var drawGameSceneSunset4 = function(){
+    drawPalleteSunset();
+    
+    // Draw the static elements
+    fill(0, 0, 0);
+    textSize(15);
+
+    var elapsedTime;
+
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    // Calculate the final score
+    var finalScore = numPlatforms + elapsedTime;
+    fill(149, 118, 207);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Display game result messages
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+var drawGameSceneBarbie5 = function(){
+    drawPalleteBarbie();
+    // Draw the static elements
+    fill(0, 0, 0);
+    textSize(15);
+
+    var elapsedTime;
+
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    // Calculate the final score
+    var finalScore = numPlatforms + elapsedTime;
+    fill(149, 118, 207);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Display game result messages
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+var drawGameSceneBlurple6 = function(){
+    drawPalleteBlurple();
+    // Draw the static elements
+    fill(0, 0, 0);
+    textSize(15);
+
+    var elapsedTime;
+
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    // Calculate the final score
+    var finalScore = numPlatforms + elapsedTime;
+    fill(149, 118, 207);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Draw rectangles only when the platform is not moving and is at the edge of the screen
+    if (platforms.length > 0 && platforms[platforms.length - 1].speed === 0) {
+        var lastPlatform = platforms[platforms.length - 1];
+
+        if (lastPlatform.x <= 0) {
+            rect(0, 0, originalPlatformX, 400);
+        }
+
+        if (lastPlatform.x + lastPlatform.width >= 400) {
+            rect(originalPlatformX + originalPlatformWidth, 0, 400 - (originalPlatformX + originalPlatformWidth), 400);
+        }
+    }
+
+    // Display game result messages
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+var drawGameSceneBlue7 = function(){
+    drawStarBlue();
+    // Draw the static elements
+    fill(0, 0, 0);
+    textSize(15);
+
+    var elapsedTime;
+
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    // Calculate the final score
+    var finalScore = numPlatforms + elapsedTime;
+    fill(149, 118, 207);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Draw rectangles only when the platform is not moving and is at the edge of the screen
+
+    // Display game result messages
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+var drawGameSceneRetro8 = function(){
+    drawPalleteRetro();
+    // Draw the static elements
+    fill(0, 0, 0);
+    textSize(15);
+
+    var elapsedTime;
+
+    if (gameWon || gameLost) {
+        // If the game is won or lost, use the end time
+        elapsedTime = Math.floor((endTime - startTime) / 1000);
+    } else {
+        // If the game is still running, use the current time
+        elapsedTime = Math.floor((millis() - startTime) / 1000);
+    }
+
+    // Calculate the final score
+    var finalScore = numPlatforms + elapsedTime;
+    fill(255,255,255);
+    text("S c o r e: " + numPlatforms, 14, 20);
+    text("T i m e: " + elapsedTime + "s", 308, 20);
+
+    drawPlatforms();
+
+    // Draw the original platform
+    fill(originalPlatformColor);
+    rect(originalPlatformX, originalPlatformY, originalPlatformWidth, originalPlatformHeight);
+
+    // Display game result messages
+    if (gameWon) {
+        drawBitmoji({
+        x:123,
+        y:217,
+        h:76,
+        shirtColor:color(199, 37, 110)
+    });
+        fill(104, 10, 163);
+        textSize(50);
+        text("Y O U  W I N !", 47, 115);
+        textSize(20);
+        fill(175, 55, 184);
+        text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+    } 
+    
+    else if (gameLost) {
+        drawBitmojiLisa({
+        x:154,
+        y:200,
+        h:0.68,
+        shirtColor: color(201, 141, 227)
+       
+    });
+        fill(104, 10, 163);
+        textSize(45);
+        text("G A M E  O V E R", 25, 122);
+        textSize(20);
+        fill(180, 56, 189);
+        text("F i n a l  S c o r e :  " + finalScore, 88, 180);
+    }
+};
+
+//BUTTONCONTROLS
+mouseClicked = function() {
+if (currentScene === 0) {
+    btn1.handleMouseClick();
+}
+
+if (currentScene === 2) {
+    btn2.handleMouseClick();
+    btn3.handleMouseClick();
+    btn4.handleMouseClick();
+    btn5.handleMouseClick();
+    btn6.handleMouseClick();
+    btn7.handleMouseClick();
+}
+};
+
+//CALLS
+draw = function() {
+
+    if (currentScene === 1) 
+        {
+            drawInstructionScene1();
+           
+        }
+        
+    if (currentScene === 2) {
+            drawSettingScene2();
+            btn2.draw();
+            btn3.draw();
+            btn4.draw();
+            btn5.draw();
+            btn6.draw();
+            btn7.draw();
+    }
+     if (currentScene === 3) {
+        drawGameSceneRainbow3();
+    }
+    if (currentScene === 4) {
+        drawGameSceneSunset4();
+    }
+    if (currentScene === 5) {
+        drawGameSceneBarbie5();
+    }
+    if (currentScene === 6) {
+        drawGameSceneBlurple6();
+    }
+    if (currentScene === 7) {
+        drawGameSceneBlue7();
+    }
+    if (currentScene === 8) {
+        drawGameSceneRetro8();
+    }
+    if (currentScene === 0) {
+        drawScene0();
+        
+    }
+    
+};
+
+initializeGame(); 
