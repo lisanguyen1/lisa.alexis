@@ -748,8 +748,8 @@ var drawInstructionScene1 = function(){
     //INSTRUCTIONS TEXT
     fill(186, 63, 186);
     textAlign(CENTER, BASELINE);
-    textSize(18);
-    text("When the block floats over the tower, click the SPACE BAR to drop, adding another level to the tower. Get all the way to the top in the least amount of time as possible. The record is Alexis and I with the robust score of 22. Try to beat that :p ", 32, 173, 340,400);
+    textSize(17);
+    text("When the block floats over the tower, click the SPACE BAR to drop, adding another level to the tower. Get all the way to the top in the least amount of time as possible. The record holders are Alexis and I and one of the kiddos today named Owen with the robust score of 22. Try to beat that :p ", 32, 173, 340,400);
     
     //CONTINUE BUTTON
     stroke(91, 55, 219);
