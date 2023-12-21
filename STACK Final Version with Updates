@@ -841,6 +841,8 @@ var drawGameSceneRainbow3 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
@@ -898,6 +900,8 @@ var drawGameSceneSunset4 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
@@ -954,6 +958,8 @@ var drawGameSceneBarbie5 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
@@ -1011,6 +1017,8 @@ var drawGameSceneBlurple6 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
@@ -1068,6 +1076,8 @@ var drawGameSceneBlue7 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
@@ -1124,6 +1134,8 @@ var drawGameSceneRetro8 = function(){
         textSize(20);
         fill(175, 55, 184);
         text("F i n a l  S c o r e :  "+ finalScore, 88, 180);
+        textSize(18);
+        text("R e c o r d: 22 ", 88 + 55, 180 + 180);
     } 
     
     else if (gameLost) {
